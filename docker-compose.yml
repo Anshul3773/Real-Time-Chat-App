@@ -1,0 +1,48 @@
+version: '1.0'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3306:3306"
+    networks:
+      - net
+
+  go-app:
+    build: ./go-backend/.
+    container_name: go-server
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_NAME: user_db
+    links:
+      - mysql
+    networks:
+      - net
+
+  react-app:
+    build: ./react-frontend/.
+    container_name: react-app
+    depends_on:
+      - go-app
+    ports:
+      - "3000:3000"
+    links:
+      - go-app
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
